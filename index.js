@@ -1,12 +1,20 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const rateLimit = require('express-rate-limit'); // Import the rate-limit library
+
 dotenv.config();
 console.log(process.env);
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
+
+// Apply rate limiting to the /payment/create endpoint
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit to 100 requests per windowMs
+});
 
 app.use(cors({ origin: true }));
 app.use(express.json());
@@ -18,7 +26,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.post("/payment/create", async (req, res) => {
+app.post("/payment/create", limiter, async (req, res) => { // Apply limiter to this route
   console.log("request received");
 
   const total = req.query.total;
