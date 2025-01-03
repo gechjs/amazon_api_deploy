@@ -2,34 +2,44 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
+console.log(process.env);
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
+
 app.use(cors({ origin: true }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "success!",
+    total: req.query,
   });
 });
 
 app.post("/payment/create", async (req, res) => {
-    console.log('request received')
+  console.log("request received");
+
   const total = req.query.total;
   if (total > 0) {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: total,
-      currency: "usd",
-    });
+    try {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: total,
+        currency: "usd",
+      });
 
-    res.status(201).json({
-      client_secret: paymentIntent.client_secret,
-    });
+      res.status(201).json({
+        client_secret: paymentIntent.client_secret,
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 });
 
 app.listen(5000, (err) => {
   if (err) throw err;
-  console.log("amazon server runing on PORT: 5000, http://localhost:5000");
+  console.log("amazon server running on PORT: 5000, http://localhost:5000");
 });
