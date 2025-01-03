@@ -24,6 +24,11 @@ app.post("/payment/create", async (req, res) => {
   const total = req.query.total;
   if (total > 0) {
     try {
+      // Validate total amount (e.g., check if it's a number and non-negative)
+      if (isNaN(total) || total < 0) {
+        throw new Error("Invalid total amount");
+      }
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: total,
         currency: "usd",
@@ -34,8 +39,10 @@ app.post("/payment/create", async (req, res) => {
       });
     } catch (error) {
       console.error("Error creating payment intent:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(400).json({ error: error.message || "Bad Request" });
     }
+  } else {
+    res.status(400).json({ error: "Total amount must be greater than zero" });
   }
 });
 
