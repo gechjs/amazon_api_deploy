@@ -34,6 +34,8 @@ app.post("/payment/create", async (req, res) => {
         currency: "usd",
       });
 
+      console.log("Payment Intent created successfully:", paymentIntent.id); 
+
       res.status(201).json({
         client_secret: paymentIntent.client_secret,
       });
